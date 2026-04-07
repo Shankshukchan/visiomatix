@@ -3,6 +3,8 @@ const { Resend } = require("resend");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const path = require("path");
+const multer = require("multer");
+const fs = require("fs");
 require("dotenv").config();
 
 const adminRoutes = require("./routes/adminRoutes");
@@ -13,6 +15,30 @@ const subscribeRoutes = require("./routes/subscribeRoutes");
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Configure multer for file uploads
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const validMimes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (validMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only PDF, DOC, and DOCX are allowed."));
+    }
+  },
+});
 
 // serve uploaded images statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -57,6 +83,73 @@ ${message || "N/A"}
     res.status(500).json({ success: false });
   }
 });
+
+// Career application endpoint with resume upload
+app.post(
+  "/api/career-application",
+  upload.single("resume"),
+  async (req, res) => {
+    try {
+      const { name, email, businessName, mobile, service, message } = req.body;
+
+      // Validate required fields
+      if (
+        !name ||
+        !email ||
+        !businessName ||
+        !mobile ||
+        !service ||
+        !req.file
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields or resume not provided",
+        });
+      }
+
+      // Prepare email content
+      const emailText = `
+New Career Application – Visiomatix Media
+
+Name: ${name}
+Email: ${email}
+Phone: ${mobile}
+Interested Service: ${service}
+Message: ${message || "N/A"}
+
+Resume: ${req.file.originalname}
+    `;
+
+      // Send email with resume attachment
+      const emailResponse = await resend.emails.send({
+        from: process.env.CONTACT_EMAIL || "onboarding@resend.dev",
+        to: [process.env.CONTACT_EMAIL || "info@visiomatix.in"],
+        subject: `Career Application – ${name}`,
+        text: emailText,
+        attachments: [
+          {
+            filename: req.file.originalname,
+            content: req.file.buffer,
+            contentType: req.file.mimetype,
+          },
+        ],
+      });
+
+      console.log("Career application email sent:", emailResponse);
+
+      res.status(200).json({
+        success: true,
+        message: "Application submitted successfully!",
+      });
+    } catch (error) {
+      console.error("Career application error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to submit application. Please try again.",
+      });
+    }
+  },
+);
 
 // mount new routes
 app.use("/admin", adminRoutes);
