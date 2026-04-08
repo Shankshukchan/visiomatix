@@ -90,15 +90,15 @@ app.post(
   upload.single("resume"),
   async (req, res) => {
     try {
-      const { name, email, businessName, mobile, service, message } = req.body;
+      const { name, email, Qaulification, mobile, role, message } = req.body;
 
       // Validate required fields
       if (
         !name ||
         !email ||
-        !businessName ||
+        !Qaulification ||
         !mobile ||
-        !service ||
+        !role ||
         !req.file
       ) {
         return res.status(400).json({
@@ -114,7 +114,7 @@ New Career Application – Visiomatix Media
 Name: ${name}
 Email: ${email}
 Phone: ${mobile}
-Interested Service: ${service}
+Interested role: ${service}
 Message: ${message || "N/A"}
 
 Resume: ${req.file.originalname}
