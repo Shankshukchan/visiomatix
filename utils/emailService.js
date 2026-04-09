@@ -75,7 +75,7 @@ const generateBlogEmailContent = (blog) => {
           </div>
 
           <p style="margin-top: 20px;">
-            <a href="${process.env.WEBSITE_URL}/blog" style="background-color: #2980b9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Read More</a>
+            <a href="visiomatix.in/blog" style="background-color: #2980b9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Read More</a>
           </p>
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
