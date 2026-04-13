@@ -90,17 +90,14 @@ app.post(
   upload.single("resume"),
   async (req, res) => {
     try {
-      const { name, email, Qaulification, mobile, role, message } = req.body;
+      const { name, email, mobile, role, message } = req.body;
+      const qualification =
+        req.body.qualification ||
+        req.body.Qualification ||
+        req.body.Qaulification;
 
       // Validate required fields
-      if (
-        !name ||
-        !email ||
-        !Qaulification ||
-        !mobile ||
-        !role ||
-        !req.file
-      ) {
+      if (!name || !email || !qualification || !mobile || !role || !req.file) {
         return res.status(400).json({
           success: false,
           message: "Missing required fields or resume not provided",
@@ -113,8 +110,9 @@ New Career Application – Visiomatix Media
 
 Name: ${name}
 Email: ${email}
+Qualification: ${qualification}
 Phone: ${mobile}
-Interested role: ${service}
+Interested role: ${role}
 Message: ${message || "N/A"}
 
 Resume: ${req.file.originalname}
